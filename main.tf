@@ -10,7 +10,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-resource "random_id" "unique_sg_id" {
+resource "random_id" "unique_appliance_id" {
   byte_length = 3
 }
 
@@ -35,7 +35,7 @@ resource "aws_instance" "nasuni-edgeappliance" {
   root_block_device {
     volume_size = var.volume_size
   }
-  vpc_security_group_ids = [ var.nac_es_securitygroup_id ]
+  vpc_security_group_ids = [ var.appliance_securitygroup_id ]
   tags = {
     Name            = var.nasuni_edge_appliance_name
     Application     = "Nasuni Analytics Connector with AWS Opensearch"
@@ -45,18 +45,14 @@ resource "aws_instance" "nasuni-edgeappliance" {
 
   }
 
-depends_on = [
-  data.local_file.aws_conf_access_key,
-  data.local_file.aws_conf_secret_key
-]
 }
 
-resource "null_resource" "update_secGrp" {
-  provisioner "local-exec" {
-     command = "sh update_secGrp.sh ${aws_instance.nasuni-edgeappliance.public_ip} ${var.nasuni_edge_appliance_name} ${data.aws_region.current.name} ${var.aws_profile} "
-  }
-  depends_on = [aws_instance.nasuni-edgeappliance]
-}
+# resource "null_resource" "update_secGrp" {
+#   provisioner "local-exec" {
+#      command = "sh update_secGrp.sh ${aws_instance.nasuni-edgeappliance.public_ip} ${var.nasuni_edge_appliance_name} ${data.aws_region.current.name} ${var.aws_profile} "
+#   }
+#   depends_on = [aws_instance.nasuni-edgeappliance]
+# }
 
 resource "null_resource" "nasuni-edgeappliance_IP" {
   provisioner "local-exec" {
@@ -65,59 +61,56 @@ resource "null_resource" "nasuni-edgeappliance_IP" {
   depends_on = [aws_instance.nasuni-edgeappliance]
 }
 
+#  resource "null_resource" "Inatall_Packages" {
+#  provisioner "remote-exec" {
+#     inline = [
+#       "echo '@@@@@@@@@@@@@@@@@@@@@ STARTED - Inastall Packages @@@@@@@@@@@@@@@@@@@@@@@'",
+#       "sudo apt update",
+#       "sudo apt upgrade -y",
+#       "sudo apt install dos2unix -y",
+#       "sudo apt install curl bash ca-certificates git openssl wget vim -y",
+#       "curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -",
+#       "sudo apt-add-repository \"deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main\"",
+#       "sudo apt update",
+#       "sudo apt install terraform",
+#       "terraform -v",
+#       "which terraform",
+#       "sudo apt install jq -y",
+#       "sudo apt install zip -y",
+#       "sudo apt install unzip -y",
+#       "sudo apt install python3.9 -y",
+#       "sudo apt install python3-pip -y",
+#       "alias python3='/usr/bin/python3.9'",
+#       "alias pip3='python3.9 -m pip'",
+#       "sudo pip3 install boto3",
+#       "curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'",
+#       "sudo unzip awscliv2.zip",
+#       "sudo ./aws/install",
+#       "aws --version",
+#       "which aws",
+#       "echo '@@@@@@@@@@@@@@@@@@@@@ FINISHED - Inastall Packages @@@@@@@@@@@@@@@@@@@@@@@'"
+#       ]
+#   }
 
- resource "null_resource" "Inatall_Packages" {
- provisioner "remote-exec" {
-    inline = [
-      "echo '@@@@@@@@@@@@@@@@@@@@@ STARTED - Inastall Packages @@@@@@@@@@@@@@@@@@@@@@@'",
-      "sudo apt update",
-      "sudo apt upgrade -y",
-      "sudo apt install dos2unix -y",
-      "sudo apt install curl bash ca-certificates git openssl wget vim -y",
-      "curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -",
-      "sudo apt-add-repository \"deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main\"",
-      "sudo apt update",
-      "sudo apt install terraform",
-      "terraform -v",
-      "which terraform",
-      "sudo apt install jq -y",
-      "sudo apt install zip -y",
-      "sudo apt install unzip -y",
-      "sudo apt install python3.9 -y",
-      "sudo apt install python3-pip -y",
-      "alias python3='/usr/bin/python3.9'",
-      "alias pip3='python3.9 -m pip'",
-      "sudo pip3 install boto3",
-      "curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'",
-      "sudo unzip awscliv2.zip",
-      "sudo ./aws/install",
-      "aws --version",
-      "which aws",
-      "echo '@@@@@@@@@@@@@@@@@@@@@ FINISHED - Inastall Packages @@@@@@@@@@@@@@@@@@@@@@@'"
-      ]
-  }
-
-  connection {
-    type        = "ssh"
-    host = var.use_private_ip != "Y" ? aws_instance.nasuni-edgeappliance.public_ip : aws_instance.nasuni-edgeappliance.private_ip
-    user        = "ubuntu"
-    private_key = file("./${var.pem_key_file}")
-  }
-  depends_on = [null_resource.update_secGrp]
- }
+#   connection {
+#     type        = "ssh"
+#     host = var.use_private_ip != "Y" ? aws_instance.nasuni-edgeappliance.public_ip : aws_instance.nasuni-edgeappliance.private_ip
+#     user        = "ubuntu"
+#     private_key = file("./${var.pem_key_file}")
+#   }
+#  }
 
 
 
-resource "null_resource" "cleanup_temp_files" {
-   provisioner "local-exec" {
-    command = "echo . > awacck.txt && echo . > awsecck.txt"
-  }
-   provisioner "local-exec" {
-    when    = destroy
-    command = "rm -rf *cck.txt"
-  }
-  depends_on = [null_resource.Inatall_APACHE]
-}
+# resource "null_resource" "cleanup_temp_files" {
+#    provisioner "local-exec" {
+#     command = "echo . > awacck.txt && echo . > awsecck.txt"
+#   }
+#    provisioner "local-exec" {
+#     when    = destroy
+#     command = "rm -rf *cck.txt"
+#   }
+# }
 
 locals {
   nasuni-edgeappliance-IP = var.use_private_ip != "Y" ? aws_instance.nasuni-edgeappliance.public_ip : aws_instance.nasuni-edgeappliance.private_ip
@@ -128,7 +121,7 @@ locals {
 ############## IAM role for edge appliance vm import ######################
 
 resource "aws_iam_role" "vmimport_access_role" {
-  name        = "${local.resource_name_prefix}-vmimport_access_role-${local.lambda_code_file_name_without_extension}-${random_id.nac_unique_stack_id.hex}"
+  name        = "${var.resource_name_prefix}-vmimport_access_role-${random_id.unique_appliance_id.hex}"
   path        = "/"
   description = "Allows to perform vmimport."
   assume_role_policy = <<EOF
@@ -149,7 +142,7 @@ resource "aws_iam_role" "vmimport_access_role" {
 }
 EOF
   tags = {
-    Name            = "${local.resource_name_prefix}-vmimport_access_role-${random_id.nac_unique_stack_id.hex}"
+    Name            = "${var.resource_name_prefix}-vmimport_access_role-${random_id.unique_appliance_id.hex}"
     Application     = "Nasuni Analytics Connector with AWS Opensearch"
     Developer       = "Nasuni"
     PublicationType = "Nasuni Labs"

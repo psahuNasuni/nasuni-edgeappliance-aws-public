@@ -56,8 +56,10 @@ variable "use_private_ip" {
 variable "git_branch" {
   default=""
 }
-
-variable "nac_es_securitygroup_id" {
+variable "resource_name_prefix" {
+  default="nasuni-labs"
+}
+variable "appliance_securitygroup_id" {
   type    = string
   default = ""
 }
