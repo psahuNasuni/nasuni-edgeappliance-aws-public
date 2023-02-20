@@ -56,66 +56,30 @@ resource "aws_instance" "nasuni-edgeappliance" {
 
 resource "null_resource" "nasuni-edgeappliance_IP" {
   provisioner "local-exec" {
-    command = var.use_private_ip != "Y" ? "echo ${aws_instance.nasuni-edgeappliance.public_ip} > nasuni-edgeappliance_IP.txt" : "echo ${aws_instance.nasuni-edgeappliance.private_ip} > nasuni-edgeappliance_IP.txt"
-  }
-  depends_on = [aws_instance.nasuni-edgeappliance]
+    command =var.use_private_ip != "Y" ? "echo ${aws_instance.nasuni-edgeappliance.public_ip} > nasuni-edgeappliance_IP.txt" : "echo ${aws_instance.nasuni-edgeappliance.private_ip} > nasuni-edgeappliance_IP.txt"
+	}
+provisioner "local-exec"{
+    command = "sed -i 's#$EdgeApplianceIpAddress.*$#$EdgeApplianceIpAddress = \"${aws_instance.nasuni-edgeappliance.public_ip}\"#g' Variables.ps1"
+}
 }
 
-#  resource "null_resource" "Inatall_Packages" {
-#  provisioner "remote-exec" {
-#     inline = [
-#       "echo '@@@@@@@@@@@@@@@@@@@@@ STARTED - Inastall Packages @@@@@@@@@@@@@@@@@@@@@@@'",
-#       "sudo apt update",
-#       "sudo apt upgrade -y",
-#       "sudo apt install dos2unix -y",
-#       "sudo apt install curl bash ca-certificates git openssl wget vim -y",
-#       "curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -",
-#       "sudo apt-add-repository \"deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main\"",
-#       "sudo apt update",
-#       "sudo apt install terraform",
-#       "terraform -v",
-#       "which terraform",
-#       "sudo apt install jq -y",
-#       "sudo apt install zip -y",
-#       "sudo apt install unzip -y",
-#       "sudo apt install python3.9 -y",
-#       "sudo apt install python3-pip -y",
-#       "alias python3='/usr/bin/python3.9'",
-#       "alias pip3='python3.9 -m pip'",
-#       "sudo pip3 install boto3",
-#       "curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'",
-#       "sudo unzip awscliv2.zip",
-#       "sudo ./aws/install",
-#       "aws --version",
-#       "which aws",
-#       "echo '@@@@@@@@@@@@@@@@@@@@@ FINISHED - Inastall Packages @@@@@@@@@@@@@@@@@@@@@@@'"
-#       ]
-#   }
+resource "null_resource" "ShellScript" {
+  provisioner "local-exec" {
+    command = "psupgrade.sh"
+    interpreter = ["sh", "-Command"]
+  }
+}
 
-#   connection {
-#     type        = "ssh"
-#     host = var.use_private_ip != "Y" ? aws_instance.nasuni-edgeappliance.public_ip : aws_instance.nasuni-edgeappliance.private_ip
-#     user        = "ubuntu"
-#     private_key = file("./${var.pem_key_file}")
-#   }
-#  }
-
-
-
-# resource "null_resource" "cleanup_temp_files" {
-#    provisioner "local-exec" {
-#     command = "echo . > awacck.txt && echo . > awsecck.txt"
-#   }
-#    provisioner "local-exec" {
-#     when    = destroy
-#     command = "rm -rf *cck.txt"
-#   }
-# }
+resource "null_resource" "PowerShellScript" {
+  provisioner "local-exec" {
+    command = "pwsh AutodeployEA.ps1 Variables.ps1"
+    interpreter = ["pwsh", "-Command"]
+  }
+}
 
 locals {
   nasuni-edgeappliance-IP = var.use_private_ip != "Y" ? aws_instance.nasuni-edgeappliance.public_ip : aws_instance.nasuni-edgeappliance.private_ip
 }
-
 
 
 ############## IAM role for edge appliance vm import ######################
@@ -148,4 +112,6 @@ EOF
     PublicationType = "Nasuni Labs"
     Version         = "V 0.1"
   }
+
 }
+

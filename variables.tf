@@ -3,7 +3,7 @@ variable "nasuni_edge_appliance_ami_id" {
 }
 variable "instance_type" {
   description = "type of instances to provision"
-  default="m4.large"
+  default="m5.large"
 }
 
 variable "aws_profile" {
