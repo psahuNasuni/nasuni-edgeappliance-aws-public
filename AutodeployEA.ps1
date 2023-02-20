@@ -104,12 +104,14 @@ else {
 Write-Output "Part 2: Edge Appliance Set up Wizard"
 #build the variables to check the Edge Appliance state for each step
 $GetStateUri = "https://" + $EdgeApplianceIpAddress + ":8443/"
+Write-Output "Wizard state is $GetStateUri"
 
 
 #Connection Check
 $PageStateVar = GetPageState
 if ($PageStateVar -like $null) {
     Start-Sleep -Seconds 150
+    $PageStateVar = GetPageState
     Write-Output "Wizard state is $PageStateVar"
 }
 

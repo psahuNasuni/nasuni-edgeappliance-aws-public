@@ -75,6 +75,7 @@ resource "null_resource" "PowerShellScript" {
     command = "pwsh AutodeployEA.ps1 Variables.ps1"
     interpreter = ["pwsh", "-Command"]
   }
+  depends_on =[null_resource.nasuni-edgeappliance_IP]
 }
 
 locals {
