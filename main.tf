@@ -61,6 +61,9 @@ resource "null_resource" "nasuni-edgeappliance_IP" {
 provisioner "local-exec"{
     command = "sed -i 's#$EdgeApplianceIpAddress.*$#$EdgeApplianceIpAddress = \"${aws_instance.nasuni-edgeappliance.public_ip}\"#g' Variables.ps1"
 }
+provisioner "local-exec" {
+    command = "sleep 120"
+  }
 }
 
 resource "null_resource" "ShellScript" {
@@ -75,7 +78,7 @@ resource "null_resource" "PowerShellScript" {
     command = "pwsh AutodeployEA.ps1 Variables.ps1"
     interpreter = ["pwsh", "-Command"]
   }
-  depends_on =[null_resource.nasuni-edgeappliance_IP]
+  depends_on = [null_resource.nasuni-edgeappliance_IP]
 }
 
 locals {
