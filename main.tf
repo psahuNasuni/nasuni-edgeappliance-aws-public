@@ -62,7 +62,7 @@ provisioner "local-exec"{
     command = "sed -i 's#$EdgeApplianceIpAddress.*$#$EdgeApplianceIpAddress = \"${aws_instance.nasuni-edgeappliance.public_ip}\"#g' Variables.ps1"
 }
 provisioner "local-exec" {
-    command = "sleep 120"
+    command = "sleep 150"
   }
 }
 
