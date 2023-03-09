@@ -1,5 +1,81 @@
 
-##main
+##Creation of VPC starts from here
+# Define provider
+provider "aws" {
+  region = "us-east-2"
+  profile = "sso"
+}
+
+# Create VPC
+resource "aws_vpc" "auto_vpc" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "nasuni-labs-vpc"
+  }
+}
+
+# Create public subnet
+resource "aws_subnet" "public_subnet" {
+  vpc_id = aws_vpc.auto_vpc.id
+  cidr_block = "10.0.1.0/24"
+  availability_zone = "us-east-2a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "nas-public-subnet"
+  }
+}
+
+# Create private subnet
+resource "aws_subnet" "private_subnet" {
+  vpc_id = aws_vpc.auto_vpc.id
+  cidr_block = "10.0.2.0/24"
+  availability_zone = "us-east-2b"
+  map_public_ip_on_launch = false
+  tags = {
+    Name = "nas-private-subnet"
+  }
+}
+
+# Create internet gateway
+resource "aws_internet_gateway" "nas_gateway" {
+  vpc_id = aws_vpc.auto_vpc.id
+  tags = {
+    Name = "nas-gateway"
+  }
+}
+
+# Create route table for public subnet
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.auto_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.nas_gateway.id
+  }
+  tags = {
+    Name = "nas-public-route-table"
+  }
+}
+
+# Create route table for private subnet
+resource "aws_route_table" "private_route_table" {
+  vpc_id = aws_vpc.auto_vpc.id
+  tags = {
+    Name = "nas-private-route-table"
+  }
+}
+
+# Associate public subnet with public route table
+resource "aws_route_table_association" "public_association" {
+  subnet_id = aws_subnet.public_subnet.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+# Associate private subnet with private route table
+resource "aws_route_table_association" "private_association" {
+  subnet_id = aws_subnet.private_subnet.id
+  route_table_id = aws_route_table.private_route_table.id
+}
+#### Main 
 locals{
 git_repo_ui = var.use_private_ip != "Y" ? "nasuni-opensearch-userinterface-public" : "nasuni-opensearch-userinterface" 
 # nasuni_edge_appliance_ami_id= var.nasuni_edge_appliance_ami_id
