@@ -72,18 +72,17 @@ resource "aws_instance" "nasuni-edgeappliance" {
 #   depends_on = [aws_instance.nasuni-edgeappliance]
 # }
 
-#resource "null_resource" "nasuni-edgeappliance_IP" {
-#  count = "${local.instance_count}"
-#  provisioner "local-exec" {
-#    command =var.use_private_ip != "Y" ? "echo ${aws_instance.nasuni-edgeappliance.public_ip} > nasuni-edgeappliance_IP.txt" : "echo ${aws_instance.nasuni-edgeappliance.private_ip} > nasuni-edgeappliance_IP.txt"
-#	}
-#provisioner "local-exec"{
-#    command = "sed -i 's#$EdgeApplianceIpAddress.*$#$EdgeApplianceIpAddress = \"${aws_instance.nasuni-edgeappliance.public_ip}\"#g' Variables.ps1"
-#}
-#provisioner "local-exec" {
-#    command = "sleep 160"
-#  }
-#}
+resource "null_resource" "nasuni-edgeappliance_IP" {
+  provisioner "local-exec" {
+    command =var.use_private_ip != "Y" ? "echo ${aws_instance.nasuni-edgeappliance.public_ip} > nasuni-edgeappliance_IP.txt" : "echo ${aws_instance.nasuni-edgeappliance.private_ip} > nasuni-edgeappliance_IP.txt"
+	}
+provisioner "local-exec"{
+    command = "sed -i 's#$EdgeApplianceIpAddress.*$#$EdgeApplianceIpAddress = \"${aws_instance.nasuni-edgeappliance.public_ip}\"#g' Variables.ps1"
+}
+provisioner "local-exec" {
+    command = "sleep 120"
+  }
+}
 
 locals {
   instance_public_ips = [for instance in aws_instance.nasuni-edgeappliance : instance.public_ip]
