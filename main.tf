@@ -27,6 +27,36 @@ data "aws_subnet_ids" "FetchingSubnetIDs" {
   vpc_id = data.aws_vpc.VPCtoBeUsed.id
 }
 
+resource "aws_instance" "nasuni-nmc" {
+  ami = var.nasuni_nmc_ami_id
+  availability_zone = var.subnet_availability_zone
+  instance_type = "${var.instance_type}"
+  key_name = "${var.aws_key}"
+  associate_public_ip_address = var.use_private_ip != "Y" ? true : false
+  # associate_public_ip_address = true
+  source_dest_check = false
+  subnet_id = var.user_subnet_id != "" ? var.user_subnet_id : element(tolist(data.aws_subnet_ids.FetchingSubnetIDs.ids),0) 
+  root_block_device {
+    volume_size = var.volume_size
+  }
+  vpc_security_group_ids = [ var.appliance_securitygroup_id ]
+  tags = {
+    Name            = "nasuni-NMC-main"
+    Application     = "Nasuni Analytics Connector with AWS Opensearch"
+    Developer       = "Nasuni"
+    PublicationType = "Nasuni Labs"
+    Version         = "V 0.1"
+
+  }
+  provisioner "local-exec" {
+    command = "rm -rf public_nmc_ips.txt"
+  }
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} >> public_nmc_ips.txt"
+  }
+
+}
+
 resource "aws_instance" "nasuni-edgeappliance" {
   count = "${local.instance_count}"
   ami = var.nasuni_edge_appliance_ami_id
@@ -49,62 +79,17 @@ resource "aws_instance" "nasuni-edgeappliance" {
     Version         = "V 0.1"
 
   }
-  provisioner "local-exec" {
-    command = "rm -rf public_ips.txt"
-  }
-  provisioner "local-exec" {
-    command = "echo ${self.public_ip} >> public_ips.txt"
-  }
+
 
 }
 
+resource "local_file" "ea_ips" {
+  filename = "ea_ip_addresses.txt"
 
-  #provisioner "local-exec" {
-  #  command = "pwsh AutodeployEA.ps1 Variables.ps1"
-  #  interpreter = ["pwsh", "-Command"]
-  #}
-#}
-
-# resource "null_resource" "update_secGrp" {
-#   provisioner "local-exec" {
-#      command = "sh update_secGrp.sh ${aws_instance.nasuni-edgeappliance.public_ip} ${var.nasuni_edge_appliance_name} ${data.aws_region.current.name} ${var.aws_profile} "
-#   }
-#   depends_on = [aws_instance.nasuni-edgeappliance]
-# }
-
-resource "null_resource" "nasuni-edgeappliance_IP" {
-  provisioner "local-exec" {
-    command =var.use_private_ip != "Y" ? "echo ${aws_instance.nasuni-edgeappliance.public_ip} > nasuni-edgeappliance_IP.txt" : "echo ${aws_instance.nasuni-edgeappliance.private_ip} > nasuni-edgeappliance_IP.txt"
-	}
-provisioner "local-exec"{
-    command = "sed -i 's#$EdgeApplianceIpAddress.*$#$EdgeApplianceIpAddress = \"${aws_instance.nasuni-edgeappliance.public_ip}\"#g' Variables.ps1"
-}
-provisioner "local-exec" {
-    command = "sleep 120"
-  }
+  content = join("\n", aws_instance.nasuni-edgeappliance.*.public_ip)
 }
 
-locals {
-  instance_public_ips = [for instance in aws_instance.nasuni-edgeappliance : instance.public_ip]
-  instance_private_ips = [for instance in aws_instance.nasuni-edgeappliance : instance.private_ip]
-}
 
-#resource "null_resource" "sleep" {
-#  provisioner "local-exec" {
-#    command = "sleep 160"
-#  }
-#  provisioner "local-exec" {
-#   command = "exit"
-#  }
-#}
-
-#resource "null_resource" "PowerShellScript" {
-#  provisioner "local-exec" {
-#    command = "pwsh AutodeployEA.ps1 Variables.ps1"
-#    interpreter = ["pwsh", "-Command"]
-#  }
-#  depends_on = [null_resource.sleep]
-#}
 
 
 ############## IAM role for edge appliance vm import ######################

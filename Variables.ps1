@@ -1,14 +1,13 @@
-#Auto Deploy Variables
 #Variables for Part 1 - NMC login to get serial number and auth for the next section
 #Tell the script to use login to NMC to find an unused serial number and auth code (true/false). If false, you must provide a Serial Number and Auth Code
 $GetSerialFromNMC = 'true'
 
 #specify NMC hostname
-$NmcHostname = "insertNmcHostnameOrIP"
+$NmcHostname = "18.117.73.63"
 
 #specify NMC login information - use DOMAIN\username for domain accounts
-$NmcUsername = 'username'
-$NmcPassword = 'password'
+$NmcUsername = 'automation'
+$NmcPassword = 'dangerous'
 
 #specify Serial Number and Auth code if not using the NMC to obtain them
 $SerialNumber = 'enterAuthCode'
@@ -16,14 +15,14 @@ $AuthCode = 'enterAuthCode'
 
 #Variables for Part 2 - Edge Appliance Setup Wizard
 #Enter Edge Appliance IP Address
-$EdgeApplianceIpAddress = "insertEdgeApplianceIPaddress"
+$EdgeApplianceIpAddress = "54.202.123.6"
 
 #Enter Edge Appliance Name
-$EdgeApplianceName = "insertEdgeApplianceName"
+$EdgeApplianceName = "filer-5185"
 
 #Enter desired Edge Appliance User Name and Password
-$EdgeApplianceUsername = "username"
-$EdgeAppliancePassword = 'password'
+$EdgeApplianceUsername = "automation"
+$EdgeAppliancePassword = 'dangerous'
 
 #Network Information
 #Populate the information for the System Settings portion of network configuration.
@@ -32,8 +31,8 @@ $EdgeAppliancePassword = 'password'
 $NwBootproto = 'dhcp2'
 $NwGateway = ''
 #dns information
-$NwSearchDomain = 'domain.com'
-$NwPrimaryDNS = 'insertDnsIP'
+$NwSearchDomain = 'us-west-2.compute.internal'
+$NwPrimaryDNS = '10.0.0.2'
 $NwSecondaryDNS = ''
 
 #Populate the Network Inferface Settings information for the first Traffic Group
@@ -62,10 +61,10 @@ $NwProxyEnabled = 1
 
 #Variables for Part 3 - Domain Join
 #Contrals whether to join AD domain - true or false
-$DomainJoin = 'true'
+$DomainJoin = 'false'
 #AD Domain Name - e.g., domain.com
 $DomainName = "insertDomain.com"
 
 #AD Join credentials - an AD account with permission to join the domain. Do not specify a Domain Prefix
-$DomainUsername = 'DomainUsername'
-$DomainPassword = 'DomainPassword'
+$DomainUsername = 'admin'
+$DomainPassword = 'admin'

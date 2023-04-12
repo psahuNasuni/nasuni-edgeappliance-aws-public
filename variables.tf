@@ -1,3 +1,13 @@
+variable "instance_count" {
+   description = "Number of EdgeAppliance needed"
+  type    = number
+  default = 1
+}
+
+variable "nasuni_nmc_ami_id" {
+  description = "ami ID of NMC instances"
+}
+
 variable "nasuni_edge_appliance_ami_id" {
   description = "ami ID of Edge appliance instances"
 }
@@ -12,7 +22,7 @@ variable "aws_profile" {
 }
 variable "region" {
   description = "VPC region: defaults to us-east-2 (Ohio)"
-  default = "us-east-2"
+  default = "us-west-2"
 }
 variable "volume_size" {
   description = "volume_size default is set as 32GiB"
